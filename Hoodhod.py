@@ -1,5 +1,4 @@
 import numpy as np
-
 class LinearRegressionModel:
         def __init__(self, alpha=0.01, num_iterations=1000, threshold=0.5):
             self.alpha = alpha
