@@ -1,6 +1,5 @@
 import numpy as np
 class Linear_Model:
-
     class LinearRegressionModel:
             def __init__(self, alpha=0.01, num_iterations=1000, threshold=0.5):
                 self.alpha = alpha
@@ -26,3 +25,16 @@ class Linear_Model:
                 y_pred = X.dot(self.theta)
                 r2 = 1 - ((y - y_pred)**2).sum() / ((y - y.mean())**2).sum()
                 return r2
+
+class metrices:
+    @staticmethod
+    def mean_squared_error(y_true, y_pred):
+        mse = np.mean((y_true - y_pred) ** 2)
+        return mse
+
+    @staticmethod
+    def r_squared(y_true, y_pred):
+        ss_res = np.sum((y_true - y_pred) ** 2)
+        ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
+        r2 = 1 - (ss_res / ss_tot)
+        return r2
