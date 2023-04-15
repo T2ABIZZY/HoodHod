@@ -38,3 +38,93 @@ class metrices:
         ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
         r2 = 1 - (ss_res / ss_tot)
         return r2
+
+class BinaryDecisionTree:
+    def __init__(self, max_depth=None):
+        self.root = None
+        self.max_depth = max_depth
+
+    def fit(self, X, y):
+        self.root = self.build_tree(X, y)
+
+    def build_tree(self, X, y, depth=0):
+        if depth == self.max_depth or len(set(y)) == 1:
+            return LeafNode(y)
+
+        best_feature, best_value = self.get_best_split(X, y)
+        left_mask = X[:, best_feature] < best_value
+        right_mask = X[:, best_feature] >= best_value
+
+        left_tree = self.build_tree(X[left_mask], y[left_mask], depth + 1)
+        right_tree = self.build_tree(X[right_mask], y[right_mask], depth + 1)
+
+        return InternalNode(best_feature, best_value, left_tree, right_tree)
+
+    def get_best_split(self, X, y):
+        best_gain = 0
+        best_feature = None
+        best_value = None
+
+        n_samples, n_features = X.shape
+
+        for feature in range(n_features):
+            feature_values = sorted(set(X[:, feature]))
+            for i in range(1, len(feature_values)):
+                threshold = (feature_values[i - 1] + feature_values[i]) / 2
+                left_mask = X[:, feature] < threshold
+                right_mask = X[:, feature] >= threshold
+
+                left_labels = y[left_mask]
+                right_labels = y[right_mask]
+
+                if len(left_labels) == 0 or len(right_labels) == 0:
+                    continue
+
+                gain = self.gain(y, left_labels, right_labels)
+
+                if gain > best_gain:
+                    best_gain = gain
+                    best_feature = feature
+                    best_value = threshold
+
+        return best_feature, best_value
+
+    def predict(self, X):
+        return np.array([self.root.predict(x) for x in X])
+
+    @staticmethod
+    def entropy(labels):
+        _, counts = np.unique(labels, return_counts=True)
+        probabilities = counts / counts.sum()
+        return -np.sum(probabilities * np.log2(probabilities))
+
+    def gain(self, parent_labels, left_labels, right_labels):
+        parent_entropy = self.entropy(parent_labels)
+        n = len(parent_labels)
+        left_entropy = self.entropy(left_labels)
+        right_entropy = self.entropy(right_labels)
+        left_weight = len(left_labels) / n
+        right_weight = len(right_labels) / n
+        return parent_entropy - left_weight * left_entropy - right_weight * right_entropy
+
+
+class InternalNode:
+    def __init__(self, feature, value, left, right):
+        self.feature = feature
+        self.value = value
+        self.left = left
+        self.right = right
+
+    def predict(self, x):
+        if x[self.feature] < self.value:
+            return self.left.predict(x)
+        else:
+            return self.right.predict(x)
+
+
+class LeafNode:
+    def __init__(self, labels):
+        self.labels = labels
+
+    def predict(self, x):
+        return self.labels[0]
