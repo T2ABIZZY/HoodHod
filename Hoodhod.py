@@ -38,6 +38,13 @@ class metrices:
         ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
         r2 = 1 - (ss_res / ss_tot)
         return r2
+    @staticmethod
+    def score(self, X, y):
+        X = np.c_[np.ones((X.shape[0], 1)), X]
+        y_pred = X.dot(self.theta)
+        r2 = 1 - ((y - y_pred)**2).sum() / ((y - y.mean())**2).sum()
+        return r2
+
 
 class BinaryDecisionTree:
     def __init__(self, max_depth=None):
